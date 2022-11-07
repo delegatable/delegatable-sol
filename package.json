@@ -69,7 +69,7 @@
     "hardhat": "2.8.3",
     "hardhat-abi-exporter": "2.8.0",
     "hardhat-dependency-compiler": "1.1.2",
-    "hardhat-deploy": "0.10.5",
+    "hardhat-deploy": "0.11.20",
     "hardhat-deploy-ethers": "0.3.0-beta.13",
     "hardhat-ethers": "1.0.1",
     "hardhat-gas-reporter": "1.0.7",
