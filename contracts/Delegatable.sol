@@ -78,7 +78,9 @@ abstract contract Delegatable is IDelegatable, DelegatableCore {
         return keccak256(encoded);
     }
 
-    function verifyDelegationSignature(SignedDelegation calldata signedDelegation)
+    function verifyDelegationSignature(
+        SignedDelegation calldata signedDelegation
+    )
         public
         view
         virtual
@@ -95,11 +97,9 @@ abstract contract Delegatable is IDelegatable, DelegatableCore {
         return recoveredSignatureSigner;
     }
 
-    function verifyInvocationSignature(SignedInvocation calldata signedInvocation)
-        public
-        view
-        returns (address)
-    {
+    function verifyInvocationSignature(
+        SignedInvocation calldata signedInvocation
+    ) public view returns (address) {
         bytes32 sigHash = getInvocationsTypedDataHash(
             signedInvocation.invocations
         );
@@ -120,12 +120,9 @@ abstract contract Delegatable is IDelegatable, DelegatableCore {
             address intendedSender = address(bytes20(_signature[0:20]));
             bytes calldata proof = _signature[20:_signature.length];
             _callERC1271isValidSignature(intendedSender, _hash, proof);
-            return intendedSender; 
+            return intendedSender;
         } else {
-            return recover(
-                _hash,
-                _signature
-            );
+            return recover(_hash, _signature);
         }
     }
 

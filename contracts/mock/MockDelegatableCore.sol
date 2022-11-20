@@ -65,13 +65,9 @@ contract MockDelegatableCore is DelegatableCore {
         return keccak256(encoded);
     }
 
-    function verifyDelegationSignature(SignedDelegation calldata signedDelegation)
-        public
-        view
-        virtual
-        override(DelegatableCore)
-        returns (address)
-    {
+    function verifyDelegationSignature(
+        SignedDelegation calldata signedDelegation
+    ) public view virtual override(DelegatableCore) returns (address) {
         Delegation memory delegation = signedDelegation.delegation;
         bytes32 sigHash = getDelegationTypedDataHash(delegation);
         address recoveredSignatureSigner = recover(
