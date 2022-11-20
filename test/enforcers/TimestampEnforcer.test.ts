@@ -7,6 +7,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { generateUtil } from "eth-delegatable-utils";
 import { getPrivateKeys } from "../../utils/getPrivateKeys";
 import { generateDelegation } from "../utils";
+import { time } from "console";
 
 const { getSigners } = ethers;
 
@@ -75,30 +76,22 @@ describe("TimestampEnforcer", () => {
         {
           enforcer: TimestampEnforcer.address,
           terms:
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000100000000000000000000000000000000",
         },
       ]
     );
     const INVOCATION_MESSAGE = {
-      replayProtection: {
-        nonce: "0x01",
-        queue: "0x00",
+      authority: [_delegation],
+      transaction: {
+        to: ERC20Delegatable.address,
+        gasLimit: "210000000000000000",
+        data: (
+          await ERC20Delegatable.populateTransaction.transfer(
+            wallet1.address,
+            ethers.utils.parseEther("0.5")
+          )
+        ).data,
       },
-      batch: [
-        {
-          authority: [_delegation],
-          transaction: {
-            to: ERC20Delegatable.address,
-            gasLimit: "210000000000000000",
-            data: (
-              await ERC20Delegatable.populateTransaction.transfer(
-                wallet1.address,
-                ethers.utils.parseEther("0.5")
-              )
-            ).data,
-          },
-        },
-      ],
     };
     const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk1);
     await ERC20Delegatable.invoke([
@@ -113,6 +106,49 @@ describe("TimestampEnforcer", () => {
   });
 
   it("should FAIL to INVOKE method BEFORE timestamp reached", async () => {
+    const PK = wallet0._signingKey().privateKey.substring(2);
+    expect(await ERC20Delegatable.balanceOf(wallet0.address)).to.eq(
+      ethers.utils.parseEther("1")
+    );
+    const _delegation = generateDelegation(
+      CONTACT_NAME,
+      ERC20Delegatable,
+      PK,
+      wallet1.address,
+      [
+        {
+          enforcer: TimestampEnforcer.address,
+          terms:
+            "0x00000000000000000000000000000100000000000000000000000007915eda10",
+        },
+      ]
+    );
+    const INVOCATION_MESSAGE = {
+      authority: [_delegation],
+      transaction: {
+        to: ERC20Delegatable.address,
+        gasLimit: "210000000000000000",
+        data: (
+          await ERC20Delegatable.populateTransaction.transfer(
+            wallet1.address,
+            ethers.utils.parseEther("0.5")
+          )
+        ).data,
+      },
+    };
+    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk1);
+
+    await expect(
+      ERC20Delegatable.invoke([
+        {
+          signature: invocation.signature,
+          invocations: invocation.invocations,
+        },
+      ])
+    ).to.be.revertedWith("TimestampEnforcer:early-delegation");
+  });
+
+  it("should SUCCEED to INVOKE method BEFORE timestamp reached", async () => {
     const PK = wallet0._signingKey().privateKey.substring(2);
     expect(await ERC20Delegatable.balanceOf(wallet0.address)).to.eq(
       ethers.utils.parseEther("1")
@@ -151,58 +187,10 @@ describe("TimestampEnforcer", () => {
         },
       ],
     };
-    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk1);
-
-    await expect(
-      ERC20Delegatable.invoke([
-        {
-          signature: invocation.signature,
-          invocations: invocation.invocations,
-        },
-      ])
-    ).to.be.revertedWith("TimestampEnforcer:expired-delegation");
-  });
-
-  it("should SUCCEED to INVOKE method BEFORE timestamp reached", async () => {
-    const PK = wallet0._signingKey().privateKey.substring(2);
-    expect(await ERC20Delegatable.balanceOf(wallet0.address)).to.eq(
-      ethers.utils.parseEther("1")
+    const invocation = delegatableUtils.signInvocations(
+      INVOCATION_MESSAGE,
+      pk1
     );
-    const _delegation = generateDelegation(
-      CONTACT_NAME,
-      ERC20Delegatable,
-      PK,
-      wallet1.address,
-      [
-        {
-          enforcer: TimestampEnforcer.address,
-          terms:
-            "0x00000000000000000000000000000001000000000000000000000007915eda10",
-        },
-      ]
-    );
-    const INVOCATION_MESSAGE = {
-      replayProtection: {
-        nonce: "0x01",
-        queue: "0x00",
-      },
-      batch: [
-        {
-          authority: [_delegation],
-          transaction: {
-            to: ERC20Delegatable.address,
-            gasLimit: "210000000000000000",
-            data: (
-              await ERC20Delegatable.populateTransaction.transfer(
-                wallet1.address,
-                ethers.utils.parseEther("0.5")
-              )
-            ).data,
-          },
-        },
-      ],
-    };
-    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk1);
     await ERC20Delegatable.invoke([
       {
         signature: invocation.signature,
@@ -214,7 +202,7 @@ describe("TimestampEnforcer", () => {
     );
   });
 
-  it("should FAIL to INVOKE method AFTER timestamp reached", async () => {
+  it("should FAIL to INVOKE method AFTER expiration time reached", async () => {
     const PK = wallet0._signingKey().privateKey.substring(2);
     await signer0.sendTransaction({
       to: wallet0.address,
@@ -238,30 +226,22 @@ describe("TimestampEnforcer", () => {
         {
           enforcer: TimestampEnforcer.address,
           terms:
-            "0x0000000000000000000000000000000100000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
         },
       ]
     );
     const INVOCATION_MESSAGE = {
-      replayProtection: {
-        nonce: "0x01",
-        queue: "0x00",
+      authority: [_delegation],
+      transaction: {
+        to: ERC20Delegatable.address,
+        gasLimit: "210000000000000000",
+        data: (
+          await ERC20Delegatable.populateTransaction.transfer(
+            wallet1.address,
+            ethers.utils.parseEther("0.5")
+          )
+        ).data,
       },
-      batch: [
-        {
-          authority: [_delegation],
-          transaction: {
-            to: ERC20Delegatable.address,
-            gasLimit: "210000000000000000",
-            data: (
-              await ERC20Delegatable.populateTransaction.transfer(
-                wallet1.address,
-                ethers.utils.parseEther("0.5")
-              )
-            ).data,
-          },
-        },
-      ],
     };
     const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk1);
     await expect(
@@ -271,6 +251,6 @@ describe("TimestampEnforcer", () => {
           invocations: invocation.invocations,
         },
       ])
-    ).to.be.revertedWith("TimestampEnforcer:early-delegation");
+    ).to.be.revertedWith("TimestampEnforcer:expired-delegation");
   });
 });

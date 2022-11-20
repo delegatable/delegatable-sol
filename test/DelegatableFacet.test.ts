@@ -163,7 +163,7 @@ describe("DelegatableFacet", () => {
           },
         ],
       };
-      const invocation = delegatableUtils.signInvocation(
+      const invocation = delegatableUtils.signInvocations(
         INVOCATION_MESSAGE,
         pk0
       );
@@ -196,7 +196,7 @@ describe("DelegatableFacet", () => {
           },
         ],
       };
-      const invocation = delegatableUtils.signInvocation(
+      const invocation = delegatableUtils.signInvocations(
         INVOCATION_MESSAGE,
         pk0
       );

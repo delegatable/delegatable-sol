@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import {EIP712Decoder, EIP712DOMAIN_TYPEHASH} from "./TypesAndDecoders.sol";
 import {Delegation, Invocation, Invocations, SignedInvocation, SignedDelegation, Transaction, ReplayProtection, CaveatEnforcer} from "./CaveatEnforcer.sol";
+import {IERC1271Wallet} from "./interfaces/IERC1271Wallet.sol";
 
 abstract contract DelegatableCore is EIP712Decoder {
     /// @notice Account delegation nonce manager

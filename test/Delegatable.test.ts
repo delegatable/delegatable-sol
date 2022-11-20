@@ -92,7 +92,7 @@ describe("Delegatable", () => {
     expect(
       await Delegatable.getInvocationsTypedDataHash(INVOCATION_MESSAGE)
     ).to.eq(
-      "0xf6e94ae88b8b72d51444924d7cf26f28b4eaf7d5d274dffbdc83cb92cb4eeac5"
+      "0x02ab888ac2e660572a8a35c97df49446801e50cf549a7d0546ac881c2aec28d6"
     );
   });
   it("READ getEIP712DomainHash(string,string,uint256,address)", async () => {});
@@ -115,23 +115,16 @@ describe("Delegatable", () => {
       wallet1.address
     );
     const INVOCATION_MESSAGE = {
-      replayProtection: {
-        nonce: "0x01",
-        queue: "0x00",
+      authority: [_delegation],
+      transaction: {
+        to: Delegatable.address,
+        gasLimit: "21000000000000",
+        data: (await Delegatable.populateTransaction.setPurpose("To delegate!"))
+          .data,
       },
-      batch: [
-        {
-          authority: [_delegation],
-          transaction: {
-            to: Delegatable.address,
-            gasLimit: "21000000000000",
-            data: (
-              await Delegatable.populateTransaction.setPurpose("To delegate!")
-            ).data,
-          },
-        },
-      ],
     };
+    console.log("ATTEMPTING TO SIGN INVOCATION");
+    console.log(INVOCATION_MESSAGE);
     const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk0);
     expect(await Delegatable.verifyInvocationSignature(invocation)).to.eq(
       wallet0.address
@@ -184,7 +177,7 @@ describe("Delegatable", () => {
           },
         ],
       };
-      const invocation = delegatableUtils.signInvocation(
+      const invocation = delegatableUtils.signInvocations(
         INVOCATION_MESSAGE,
         pk0
       );
@@ -223,7 +216,7 @@ describe("Delegatable", () => {
           },
         ],
       };
-      const invocation = delegatableUtils.signInvocation(
+      const invocation = delegatableUtils.signInvocations(
         INVOCATION_MESSAGE,
         pk0
       );

@@ -93,7 +93,10 @@ describe("DelegatableRelay", () => {
         },
       ],
     };
-    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk0);
+    const invocation = delegatableUtils.signInvocations(
+      INVOCATION_MESSAGE,
+      pk0
+    );
     expect(await DelegatableRelay.verifyInvocationSignature(invocation)).to.eq(
       wallet0.address
     );
@@ -144,7 +147,7 @@ describe("DelegatableRelay", () => {
           },
         ],
       };
-      const invocation = delegatableUtils.signInvocation(
+      const invocation = delegatableUtils.signInvocations(
         INVOCATION_MESSAGE,
         pk0
       );
@@ -182,7 +185,7 @@ describe("DelegatableRelay", () => {
           },
         ],
       };
-      const invocation = delegatableUtils.signInvocation(
+      const invocation = delegatableUtils.signInvocations(
         INVOCATION_MESSAGE,
         pk0
       );

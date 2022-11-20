@@ -17,15 +17,16 @@ contract TimestampEnforcer is CaveatEnforcer {
         bytes32 delegationHash
     ) public override returns (bool) {
         uint128 logicOperator = BytesLib.toUint128(terms, 0);
-        uint128 blockExpiration = BytesLib.toUint128(terms, 16);
         if (logicOperator == 0) {
-            if (blockExpiration < block.timestamp) {
+            uint128 expirationTime = BytesLib.toUint128(terms, 16);
+            if (block.timestamp < expirationTime) {
                 return true;
             } else {
                 revert("TimestampEnforcer:expired-delegation");
             }
         } else {
-            if (blockExpiration > block.timestamp) {
+            uint128 validAfterTime = BytesLib.toUint128(terms, 16);
+            if (block.timestamp > validAfterTime) {
                 return true;
             } else {
                 revert("TimestampEnforcer:early-delegation");
