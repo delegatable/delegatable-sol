@@ -5,6 +5,10 @@ pragma solidity 0.8.15;
 contract EIP1271 {
     mapping(address => bool) isOwner;
 
+    constructor () {
+        isOwner[msg.sender] = true;
+    }
+
     function addOwner(address _owner) public {
         isOwner[_owner] = true;
     }
