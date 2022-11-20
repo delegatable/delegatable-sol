@@ -92,7 +92,7 @@ contract DelegatableFacet is IDelegatable, DelegatableCore {
         return keccak256(encoded);
     }
 
-    function verifyDelegationSignature(SignedDelegation memory signedDelegation)
+    function verifyDelegationSignature(SignedDelegation calldata signedDelegation)
         public
         view
         virtual
