@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-import "hardhat/console.sol";
+// import "hardhat/console.sol";
 import {EIP712DOMAIN_TYPEHASH} from "./TypesAndDecoders.sol";
 import {Delegation, Invocation, Invocations, SignedInvocation, SignedDelegation} from "./CaveatEnforcer.sol";
 import {DelegatableCore} from "./DelegatableCore.sol";
@@ -119,9 +119,6 @@ abstract contract Delegatable is IDelegatable, DelegatableCore {
         if (isContractAccount) {
             address intendedSender = address(bytes20(_signature[0:20]));
             bytes calldata proof = _signature[20:_signature.length];
-            console.log("Contract account address?: %s", intendedSender);
-            console.log("Proof:");
-            console.logBytes(proof);
             _callERC1271isValidSignature(intendedSender, _hash, proof);
             return intendedSender;
         } else {

@@ -16,7 +16,7 @@ abstract contract DelegatableRelayCore is EIP712Decoder {
         return multiNonce[intendedSender][queue];
     }
 
-    function verifyDelegationSignature(SignedDelegation memory signedDelegation)
+    function verifyDelegationSignature(SignedDelegation calldata signedDelegation)
         public
         view
         virtual
@@ -52,7 +52,7 @@ abstract contract DelegatableRelayCore is EIP712Decoder {
         returns (bool success)
     {
         for (uint256 x = 0; x < batch.length; x++) {
-            Invocation memory invocation = batch[x];
+            Invocation calldata invocation = batch[x];
             address intendedSender;
             address canGrant;
 
@@ -65,7 +65,7 @@ abstract contract DelegatableRelayCore is EIP712Decoder {
             bytes32 authHash = 0x0;
 
             for (uint256 d = 0; d < invocation.authority.length; d++) {
-                SignedDelegation memory signedDelegation = invocation.authority[
+                SignedDelegation calldata signedDelegation = invocation.authority[
                     d
                 ];
                 address delegationSigner = verifyDelegationSignature(
@@ -83,7 +83,7 @@ abstract contract DelegatableRelayCore is EIP712Decoder {
                     "DelegatableCore:invalid-delegation-signer"
                 );
 
-                Delegation memory delegation = signedDelegation.delegation;
+                Delegation calldata delegation = signedDelegation.delegation;
                 require(
                     delegation.authority == authHash,
                     "DelegatableCore:invalid-authority-delegation-link"
@@ -118,7 +118,7 @@ abstract contract DelegatableRelayCore is EIP712Decoder {
             }
 
             // Here we perform the requested invocation.
-            Transaction memory transaction = invocation.transaction;
+            Transaction calldata transaction = invocation.transaction;
 
             // TODO(@kames): Can we bubble up the error message from the enforcer? Why not? Optimizations?
             success = _execute(

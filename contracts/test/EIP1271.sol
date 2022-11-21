@@ -1,5 +1,4 @@
 pragma solidity 0.8.15;
-import "hardhat/console.sol";
 import "../libraries/ECRecovery.sol";
 
 //SPDX-License-Identifier: MIT
@@ -23,14 +22,10 @@ contract EIP1271 is ECRecovery {
         view
         returns (bytes4)
     {
-        console.log("Recovered signer to be %s", recover(_hash, _signature));
         if (isOwner[recover(_hash, _signature)]) {
-            console.log("an owner.");
             return 0x1626ba7e;
         } else {
-            console.log("Not an owner.");
             return 0xffffffff;
         }
     }
-
 }
