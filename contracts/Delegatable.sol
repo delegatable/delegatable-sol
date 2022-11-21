@@ -6,6 +6,7 @@ import {EIP712DOMAIN_TYPEHASH} from "./TypesAndDecoders.sol";
 import {Delegation, Invocation, Invocations, SignedInvocation, SignedDelegation} from "./CaveatEnforcer.sol";
 import {DelegatableCore} from "./DelegatableCore.sol";
 import {IDelegatable} from "./interfaces/IDelegatable.sol";
+import {IERC1271Wallet} from "./interfaces/IERC1271Wallet.sol";
 
 abstract contract Delegatable is IDelegatable, DelegatableCore {
     /// @notice The hash of the domain separator used in the EIP712 domain hash.
@@ -77,35 +78,64 @@ abstract contract Delegatable is IDelegatable, DelegatableCore {
         return keccak256(encoded);
     }
 
-    function verifyDelegationSignature(SignedDelegation memory signedDelegation)
+    function verifyDelegationSignature(
+        SignedDelegation calldata signedDelegation
+    )
         public
         view
         virtual
         override(IDelegatable, DelegatableCore)
         returns (address)
     {
-        Delegation memory delegation = signedDelegation.delegation;
+        Delegation calldata delegation = signedDelegation.delegation;
         bytes32 sigHash = getDelegationTypedDataHash(delegation);
-        address recoveredSignatureSigner = recover(
+        address recoveredSignatureSigner = flexibleRecover(
             sigHash,
-            signedDelegation.signature
+            signedDelegation.signature,
+            signedDelegation.signerIsContract
         );
         return recoveredSignatureSigner;
     }
 
-    function verifyInvocationSignature(SignedInvocation memory signedInvocation)
-        public
-        view
-        returns (address)
-    {
+    function verifyInvocationSignature(
+        SignedInvocation calldata signedInvocation
+    ) public view returns (address) {
         bytes32 sigHash = getInvocationsTypedDataHash(
             signedInvocation.invocations
         );
-        address recoveredSignatureSigner = recover(
+        address recoveredSignatureSigner = flexibleRecover(
             sigHash,
-            signedInvocation.signature
+            signedInvocation.signature,
+            signedInvocation.signerIsContract
         );
         return recoveredSignatureSigner;
+    }
+
+    function flexibleRecover(
+        bytes32 _hash,
+        bytes calldata _signature,
+        bool isContractAccount
+    ) internal view returns (address) {
+        if (isContractAccount) {
+            address intendedSender = address(bytes20(_signature[0:20]));
+            bytes calldata proof = _signature[20:_signature.length];
+            _callERC1271isValidSignature(intendedSender, _hash, proof);
+            return intendedSender;
+        } else {
+            return recover(_hash, _signature);
+        }
+    }
+
+    function _callERC1271isValidSignature(
+        address _addr,
+        bytes32 _hash,
+        bytes calldata _signature
+    ) internal view {
+        bytes4 result = IERC1271Wallet(_addr).isValidSignature(
+            _hash,
+            _signature
+        );
+        require(result == 0x1626ba7e, "INVALID_SIGNATURE");
     }
 
     // --------------------------------------

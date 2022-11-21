@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import {EIP712Decoder, EIP712DOMAIN_TYPEHASH} from "./TypesAndDecoders.sol";
 import {Delegation, Invocation, Invocations, SignedInvocation, SignedDelegation, Transaction, ReplayProtection, CaveatEnforcer} from "./CaveatEnforcer.sol";
+import {IERC1271Wallet} from "./interfaces/IERC1271Wallet.sol";
 
 abstract contract DelegatableCore is EIP712Decoder {
     /// @notice Account delegation nonce manager
@@ -16,11 +17,9 @@ abstract contract DelegatableCore is EIP712Decoder {
         return multiNonce[intendedSender][queue];
     }
 
-    function verifyDelegationSignature(SignedDelegation memory signedDelegation)
-        public
-        view
-        virtual
-        returns (address);
+    function verifyDelegationSignature(
+        SignedDelegation calldata signedDelegation
+    ) public view virtual returns (address);
 
     function _enforceReplayProtection(
         address intendedSender,
@@ -52,7 +51,7 @@ abstract contract DelegatableCore is EIP712Decoder {
         returns (bool success)
     {
         for (uint256 x = 0; x < batch.length; x++) {
-            Invocation memory invocation = batch[x];
+            Invocation calldata invocation = batch[x];
             address intendedSender;
             address canGrant;
 
@@ -65,9 +64,8 @@ abstract contract DelegatableCore is EIP712Decoder {
             bytes32 authHash = 0x0;
 
             for (uint256 d = 0; d < invocation.authority.length; d++) {
-                SignedDelegation memory signedDelegation = invocation.authority[
-                    d
-                ];
+                SignedDelegation calldata signedDelegation = invocation
+                    .authority[d];
                 address delegationSigner = verifyDelegationSignature(
                     signedDelegation
                 );

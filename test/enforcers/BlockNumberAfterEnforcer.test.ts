@@ -101,7 +101,10 @@ describe("BlockNumberAfterEnforcer", () => {
         },
       ],
     };
-    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk1);
+    const invocation = delegatableUtils.signInvocations(
+      INVOCATION_MESSAGE,
+      pk1
+    );
     await ERC20Delegatable.invoke([
       {
         signature: invocation.signature,
@@ -150,7 +153,10 @@ describe("BlockNumberAfterEnforcer", () => {
         },
       ],
     };
-    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk1);
+    const invocation = delegatableUtils.signInvocations(
+      INVOCATION_MESSAGE,
+      pk1
+    );
 
     await expect(
       ERC20Delegatable.invoke([

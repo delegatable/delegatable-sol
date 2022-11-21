@@ -29,6 +29,7 @@ const typedMessage = {
     SignedInvocation: [
       { name: "invocations", type: "Invocations" },
       { name: "signature", type: "bytes" },
+      { name: "signerIsContract", type: "bool" },
     ],
     Transaction: [
       { name: "to", type: "address" },
@@ -51,6 +52,7 @@ const typedMessage = {
     SignedDelegation: [
       { name: "delegation", type: "Delegation" },
       { name: "signature", type: "bytes" },
+      { name: "signerIsContract", type: "bool" },
     ],
   },
 };

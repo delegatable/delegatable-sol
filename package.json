@@ -34,6 +34,7 @@
     "test": "npm run cleanup && HIDE_DEPLOY_LOG=true OPTIMIZER_DISABLED=true hardhat test",
     "test:fast": "HIDE_DEPLOY_LOG=true OPTIMIZER_DISABLED=true hardhat test",
     "typechain": "typechain --target=ethers-v5 \"./abis/*.json\" --out-dir \"./types\"",
+    "gen712code": "npx eip712-codegen ./scripts/types.js >> ./contracts/TypesAndDecoders.sol",
     "prepack": "npm run compile",
     "prepare": "husky install"
   },
@@ -61,8 +62,9 @@
     "chalk": "5.0.0",
     "debug": "4.3.3",
     "dotenv": "^16.0.1",
+    "eip712-codegen": "^4.0.4",
     "eslint-plugin-prettier": "^4.2.1",
-    "eth-delegatable-utils": "^1.1.0",
+    "eth-delegatable-utils": "4.1.2",
     "eth-sig-util": "^3.0.1",
     "ethereum-waffle": "3.4.0",
     "ethers": "^5.6.8",

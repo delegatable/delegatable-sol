@@ -101,7 +101,10 @@ describe("ERC20AllowanceEnforcer", () => {
         },
       ],
     };
-    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, PK1);
+    const invocation = delegatableUtils.signInvocations(
+      INVOCATION_MESSAGE,
+      PK1
+    );
     await ERC20Delegatable.invoke([
       {
         signature: invocation.signature,
@@ -154,7 +157,10 @@ describe("ERC20AllowanceEnforcer", () => {
         },
       ],
     };
-    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, PK1);
+    const invocation = delegatableUtils.signInvocations(
+      INVOCATION_MESSAGE,
+      PK1
+    );
     await expect(
       ERC20Delegatable.invoke([
         {
@@ -206,7 +212,10 @@ describe("ERC20AllowanceEnforcer", () => {
         },
       ],
     };
-    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, PK1);
+    const invocation = delegatableUtils.signInvocations(
+      INVOCATION_MESSAGE,
+      PK1
+    );
     await expect(
       ERC20Delegatable.invoke([
         {
