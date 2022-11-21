@@ -16,11 +16,9 @@ abstract contract DelegatableRelayCore is EIP712Decoder {
         return multiNonce[intendedSender][queue];
     }
 
-    function verifyDelegationSignature(SignedDelegation calldata signedDelegation)
-        public
-        view
-        virtual
-        returns (address);
+    function verifyDelegationSignature(
+        SignedDelegation calldata signedDelegation
+    ) public view virtual returns (address);
 
     function _enforceReplayProtection(
         address intendedSender,
@@ -65,9 +63,8 @@ abstract contract DelegatableRelayCore is EIP712Decoder {
             bytes32 authHash = 0x0;
 
             for (uint256 d = 0; d < invocation.authority.length; d++) {
-                SignedDelegation calldata signedDelegation = invocation.authority[
-                    d
-                ];
+                SignedDelegation calldata signedDelegation = invocation
+                    .authority[d];
                 address delegationSigner = verifyDelegationSignature(
                     signedDelegation
                 );
