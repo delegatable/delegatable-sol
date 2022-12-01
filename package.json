@@ -1,12 +1,15 @@
 {
-  "name": "delegatable-sol",
-  "version": "0.0.0-beta.0.1",
+  "name": "@delegatable/delegatable-sol",
+  "version": "0.0.0-beta.0",
   "description": "Solidity framework for extending any contract with counterfactual revocable-delegation.",
   "main": "index.js",
   "license": "MIT",
   "contributors": [
     {
       "name": "Dan Finlay"
+    },
+    {
+      "name": "Rick Dudley"
     }
   ],
   "files": [
