@@ -59,7 +59,7 @@ contract ERC20DelegatableAfterInvoke is ERC20, Delegatable {
         }
         if (!ownerFound) {
             revert(
-                "ERC20DelegatableAfterInvoke:in no invocation owner is first delegator"
+                "ERC20DelegatableAfterInvoke:no first delegator is owner"
             );
         }
     }
