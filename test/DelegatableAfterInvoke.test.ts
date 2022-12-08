@@ -65,7 +65,7 @@ describe("DelegatableAfterInvoke", () => {
     delegatableUtils = generateUtil(CONTRACT_INFO);
   });
 
-  it("should SUCCEED to INVOKE if first delegator is owner", async () => {
+  it("should SUCCEED to INVOKE if first delegator is owner - single invocation", async () => {
     expect(await ERC20DelegatableAfterInvoke.balanceOf(wallet0.address)).to.eq(
       ethers.utils.parseEther("1")
     );
@@ -114,7 +114,7 @@ describe("DelegatableAfterInvoke", () => {
     );
   });
 
-  it("should FAIL to INVOKE if first delegator is not owner", async () => {
+  it("should FAIL to INVOKE if first delegator is not owner - single invocation", async () => {
     expect(await ERC20DelegatableAfterInvoke.balanceOf(wallet0.address)).to.eq(
       ethers.utils.parseEther("1")
     );
@@ -160,7 +160,7 @@ describe("DelegatableAfterInvoke", () => {
         },
       ],
     };
-    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk2);
+    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk0); ////////
     await expect(
       ERC20DelegatableAfterInvoke.invoke([
         {
@@ -169,7 +169,222 @@ describe("DelegatableAfterInvoke", () => {
         },
       ])
     ).to.be.revertedWith(
-      "ERC20DelegatableAfterInvoke:in no invocation owner is first delegator"
+      "ERC20DelegatableAfterInvoke:no first delegator is owner"
+    );
+  });
+
+  it("should SUCCEED to INVOKE if owner is one of the first delegators of any invocation - multiple invocations", async () => {
+    expect(await ERC20DelegatableAfterInvoke.balanceOf(wallet0.address)).to.eq(
+      ethers.utils.parseEther("1")
+    );
+
+    let transferAmount = 10;
+    let tx1 = await ERC20DelegatableAfterInvoke.connect(wallet0).transfer(
+      wallet1.address,
+      transferAmount
+    );
+    await tx1.wait();
+
+    expect(await ERC20DelegatableAfterInvoke.balanceOf(wallet1.address)).to.eq(
+      transferAmount
+    );
+
+    const _delegation = generateDelegation(
+      CONTACT_NAME,
+      ERC20DelegatableAfterInvoke,
+      pk0,
+      wallet1.address,
+      [
+        {
+          enforcer: AllowedMethodsEnforcer.address,
+          terms: "0xa9059cbb",
+        },
+      ]
+    );
+    const INVOCATION_MESSAGE = {
+      replayProtection: {
+        nonce: "0x01",
+        queue: "0x00",
+      },
+      batch: [
+        {
+          authority: [_delegation],
+          transaction: {
+            to: ERC20DelegatableAfterInvoke.address,
+            gasLimit: "210000000000000000",
+            data: (
+              await ERC20DelegatableAfterInvoke.populateTransaction.transfer(
+                wallet1.address,
+                ethers.utils.parseEther("0.5")
+              )
+            ).data,
+          },
+        },
+      ],
+    };
+    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk1);
+
+    const _delegation1 = generateDelegation(
+      CONTACT_NAME,
+      ERC20DelegatableAfterInvoke,
+      pk1,
+      wallet2.address,
+      [
+        {
+          enforcer: AllowedMethodsEnforcer.address,
+          terms: "0xa9059cbb",
+        },
+      ]
+    );
+    const INVOCATION_MESSAGE_1 = {
+      replayProtection: {
+        nonce: "0x01",
+        queue: "0x00",
+      },
+      batch: [
+        {
+          authority: [_delegation1],
+          transaction: {
+            to: ERC20DelegatableAfterInvoke.address,
+            gasLimit: "210000000000000000",
+            data: (
+              await ERC20DelegatableAfterInvoke.populateTransaction.transfer(
+                wallet2.address,
+                transferAmount
+              )
+            ).data,
+          },
+        },
+      ],
+    };
+    const invocation1 = delegatableUtils.signInvocation(
+      INVOCATION_MESSAGE_1,
+      pk2
+    );
+
+    await ERC20DelegatableAfterInvoke.invoke([
+      {
+        signature: invocation1.signature,
+        invocations: invocation1.invocations,
+      },
+      {
+        signature: invocation.signature,
+        invocations: invocation.invocations,
+      },
+    ]);
+  });
+
+  it("should FAIL to INVOKE if owner is not one of the first delegators of any invocation - multiple invocations", async () => {
+    expect(await ERC20DelegatableAfterInvoke.balanceOf(wallet0.address)).to.eq(
+      ethers.utils.parseEther("1")
+    );
+    let transferAmount = 10;
+    let tx1 = await ERC20DelegatableAfterInvoke.connect(wallet0).transfer(
+      wallet1.address,
+      transferAmount
+    );
+    await tx1.wait();
+
+    let tx2 = await ERC20DelegatableAfterInvoke.connect(wallet0).transfer(
+      wallet2.address,
+      transferAmount
+    );
+    await tx2.wait();
+
+    expect(await ERC20DelegatableAfterInvoke.balanceOf(wallet1.address)).to.eq(
+      transferAmount
+    );
+
+    expect(await ERC20DelegatableAfterInvoke.balanceOf(wallet2.address)).to.eq(
+      transferAmount
+    );
+
+    const _delegation = generateDelegation(
+      CONTACT_NAME,
+      ERC20DelegatableAfterInvoke,
+      pk1,
+      wallet0.address,
+      [
+        {
+          enforcer: AllowedMethodsEnforcer.address,
+          terms: "0xa9059cbb",
+        },
+      ]
+    );
+    const INVOCATION_MESSAGE = {
+      replayProtection: {
+        nonce: "0x01",
+        queue: "0x00",
+      },
+      batch: [
+        {
+          authority: [_delegation],
+          transaction: {
+            to: ERC20DelegatableAfterInvoke.address,
+            gasLimit: "210000000000000000",
+            data: (
+              await ERC20DelegatableAfterInvoke.populateTransaction.transfer(
+                wallet0.address,
+                transferAmount
+              )
+            ).data,
+          },
+        },
+      ],
+    };
+    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, pk0);
+
+    const _delegation1 = generateDelegation(
+      CONTACT_NAME,
+      ERC20DelegatableAfterInvoke,
+      pk2,
+      wallet0.address,
+      [
+        {
+          enforcer: AllowedMethodsEnforcer.address,
+          terms: "0xa9059cbb",
+        },
+      ]
+    );
+    const INVOCATION_MESSAGE_1 = {
+      replayProtection: {
+        nonce: "0x02",
+        queue: "0x00",
+      },
+      batch: [
+        {
+          authority: [_delegation1],
+          transaction: {
+            to: ERC20DelegatableAfterInvoke.address,
+            gasLimit: "210000000000000000",
+            data: (
+              await ERC20DelegatableAfterInvoke.populateTransaction.transfer(
+                wallet0.address,
+                transferAmount
+              )
+            ).data,
+          },
+        },
+      ],
+    };
+    const invocation1 = delegatableUtils.signInvocation(
+      INVOCATION_MESSAGE_1,
+      pk0
+    );
+
+    await expect(
+      ERC20DelegatableAfterInvoke.invoke([
+        {
+          signature: invocation.signature,
+          invocations: invocation.invocations,
+        },
+        {
+          signature: invocation1.signature,
+          invocations: invocation1.invocations,
+        },
+      ])
+    ).to.be.revertedWith(
+      "ERC20DelegatableAfterInvoke:no first delegator is owner"
     );
   });
 });
