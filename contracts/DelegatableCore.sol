@@ -151,4 +151,8 @@ abstract contract DelegatableCore is EIP712Decoder {
         }
         return sender;
     }
+
+    function _afterInvoke(SignedInvocation[] calldata signedInvocations)
+        internal
+        virtual { }
 }
