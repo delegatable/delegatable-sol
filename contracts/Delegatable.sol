@@ -138,6 +138,7 @@ abstract contract Delegatable is IDelegatable, DelegatableCore {
             );
             _invoke(signedInvocation.invocations.batch, invocationSigner);
         }
+        _afterInvoke(signedInvocations);
     }
 
     /* ===================================================================================== */
