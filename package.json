@@ -55,7 +55,7 @@
     "@types/chai": "4.3.0",
     "@types/debug": "4.1.7",
     "@types/mocha": "9.1.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^18.11.13",
     "base64-sol": "1.1.0",
     "chai": "4.3.6",
     "chalk": "5.0.0",
