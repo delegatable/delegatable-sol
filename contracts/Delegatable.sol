@@ -127,6 +127,7 @@ abstract contract Delegatable is IDelegatable, DelegatableCore {
         override
         returns (bool success)
     {
+        _beforeInvoke(signedInvocations);
         for (uint256 i = 0; i < signedInvocations.length; i++) {
             SignedInvocation calldata signedInvocation = signedInvocations[i];
             address invocationSigner = verifyInvocationSignature(
@@ -136,7 +137,15 @@ abstract contract Delegatable is IDelegatable, DelegatableCore {
                 invocationSigner,
                 signedInvocations[i].invocations.replayProtection
             );
+            _beforeSingleInvoke(
+                signedInvocation.invocations.batch,
+                invocationSigner
+            );
             _invoke(signedInvocation.invocations.batch, invocationSigner);
+            _afterSingleInvoke(
+                signedInvocation.invocations.batch,
+                invocationSigner
+            );
         }
         _afterInvoke(signedInvocations);
     }
