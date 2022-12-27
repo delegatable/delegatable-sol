@@ -97,7 +97,7 @@ if (MAINNET_PK_DEPLOYER && OPTIMISM_MAINNET_RPC_URL) {
 if (TESTNET_PK_DEPLOYER && OPTIMISM_TESTNET_RPC_URL) {
   networks.optimismTestnet = {
     url: OPTIMISM_TESTNET_RPC_URL,
-    chainId: 42,
+    chainId: 420,
     accounts: [
       TESTNET_PK_DEPLOYER as unknown as HardhatNetworkAccountUserConfig,
     ],

@@ -35,7 +35,6 @@ abstract contract DelegatableRelayCore is EIP712Decoder {
         multiNonce[intendedSender][queue] = nonce;
     }
 
-
     function _execute(
         address to,
         bytes memory data,
