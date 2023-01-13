@@ -178,4 +178,26 @@ abstract contract DelegatableCore is EIP712Decoder {
         }
         return sender;
     }
+
+    function _afterInvoke(SignedInvocation[] calldata signedInvocations)
+        internal
+        virtual
+    {}
+
+    function _beforeInvoke(SignedInvocation[] calldata signedInvocations)
+        internal 
+        virtual 
+    {}
+
+    function _beforeSingleInvoke(Invocation[] calldata batch, address sender) 
+        internal 
+        virtual
+    {}
+
+    function _afterSingleInvoke(Invocation[] calldata batch, address sender) 
+        internal 
+        virtual
+    {}
+
+
 }
