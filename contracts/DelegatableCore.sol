@@ -56,44 +56,46 @@ abstract contract DelegatableCore is EIP712Decoder {
         bytes32 authHash = 0x0;
 
         uint256 delegationsLength = delegations.length;
-        for (uint256 d = 0; d < delegationsLength; d++) {
-            SignedDelegation calldata signedDelegation = delegations[d];
-            address delegationSigner = verifyDelegationSignature(signedDelegation);
+        unchecked {
+            for (uint256 d = 0; d < delegationsLength; d++) {
+                SignedDelegation calldata signedDelegation = delegations[d];
+                address delegationSigner = verifyDelegationSignature(signedDelegation);
 
-            require(
-                delegationSigner == canGrant,
-                "DelegatableCore:invalid-delegation-signer"
-            );
-
-            Delegation calldata delegation = signedDelegation.delegation;
-            require(
-                delegation.authority == authHash,
-                "DelegatableCore:invalid-authority-delegation-link"
-            );
-
-            bytes32 delegationHash = GET_SIGNEDDELEGATION_PACKETHASH(signedDelegation);
-
-            // Each delegation can include any number of caveats.
-            // A caveat is any condition that may reject a proposed transaction.
-            // The caveats specify an external contract that is passed the proposed tx,
-            // As well as some extra terms that are used to parameterize the enforcer.
-            uint256 caveatsLength = delegation.caveats.length;
-            for (uint256 c = 0; c < caveatsLength; c++) {
-                CaveatEnforcer enforcer = CaveatEnforcer(
-                    delegation.caveats[y].enforcer
+                require(
+                    delegationSigner == canGrant,
+                    "DelegatableCore:invalid-delegation-signer"
                 );
-                bool caveatSuccess = enforcer.enforceCaveat(
-                    delegation.caveats[y].terms,
-                    invocation.transaction,
-                    delegationHash
+
+                Delegation calldata delegation = signedDelegation.delegation;
+                require(
+                    delegation.authority == authHash,
+                    "DelegatableCore:invalid-authority-delegation-link"
                 );
-                require(caveatSuccess, "DelegatableCore:caveat-rejected");
+
+                bytes32 delegationHash = GET_SIGNEDDELEGATION_PACKETHASH(signedDelegation);
+
+                // Each delegation can include any number of caveats.
+                // A caveat is any condition that may reject a proposed transaction.
+                // The caveats specify an external contract that is passed the proposed tx,
+                // As well as some extra terms that are used to parameterize the enforcer.
+                uint256 caveatsLength = delegation.caveats.length;
+                for (uint256 c = 0; c < caveatsLength; c++) {
+                    CaveatEnforcer enforcer = CaveatEnforcer(
+                        delegation.caveats[y].enforcer
+                    );
+                    bool caveatSuccess = enforcer.enforceCaveat(
+                        delegation.caveats[y].terms,
+                        invocation.transaction,
+                        delegationHash
+                    );
+                    require(caveatSuccess, "DelegatableCore:caveat-rejected");
+                }
+
+                // Store the hash of this delegation in `authHash`
+                // That way the next delegation can be verified against it.
+                authHash = delegationHash;
+                canGrant = delegation.delegate;
             }
-
-            // Store the hash of this delegation in `authHash`
-            // That way the next delegation can be verified against it.
-            authHash = delegationHash;
-            canGrant = delegation.delegate;
         }
 
         // TODO: Return the validation check info. Maybe add time range to the schema.
