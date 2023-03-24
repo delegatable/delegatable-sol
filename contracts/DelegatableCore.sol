@@ -30,10 +30,6 @@ abstract contract DelegatableCore is EIP712Decoder {
         multiNonce[intendedSender][queue] = nonce;
     }
 
-    // Add a mapping to store the remaining gas limit for each Delegation
-    mapping(bytes32 => uint256) public delegationRemainingGas;
-    mapping(bytes32 => bool) public gasLimitHasBeenSet;
-
     /**
      * validate the signature is valid for this message.
      * @param userOp validate the userOp.signature field
@@ -59,7 +55,8 @@ abstract contract DelegatableCore is EIP712Decoder {
         address canGrant = intendedSender;
         bytes32 authHash = 0x0;
 
-        for (uint256 d = 0; d < delegations.length; d++) {
+        uint256 delegationsLength = delegations.length;
+        for (uint256 d = 0; d < delegationsLength; d++) {
             SignedDelegation memory signedDelegation = delegations[d];
             address delegationSigner = verifyDelegationSignature(signedDelegation);
 
@@ -76,22 +73,22 @@ abstract contract DelegatableCore is EIP712Decoder {
 
             bytes32 delegationHash = GET_SIGNEDDELEGATION_PACKETHASH(signedDelegation);
 
-            // Check remaining gas limit
-            uint256 remainingGas = remainingGasLimits[delegationHash];
-
-            if (!gasLimitHasBeenSet[delegationHash]) {
-                gasLimitHasBeenSet[delegationHash] = true;
-                remainingGas = delegation.gasLimit;
-                remainingGasLimits[delegationHash] = remainingGas;
+            // Each delegation can include any number of caveats.
+            // A caveat is any condition that may reject a proposed transaction.
+            // The caveats specify an external contract that is passed the proposed tx,
+            // As well as some extra terms that are used to parameterize the enforcer.
+            uint256 caveatsLength = delegation.caveats.length;
+            for (uint256 c = 0; c < caveatsLength; c++) {
+                CaveatEnforcer enforcer = CaveatEnforcer(
+                    delegation.caveats[y].enforcer
+                );
+                bool caveatSuccess = enforcer.enforceCaveat(
+                    delegation.caveats[y].terms,
+                    invocation.transaction,
+                    delegationHash
+                );
+                require(caveatSuccess, "DelegatableCore:caveat-rejected");
             }
-
-            require(
-                remainingGas >= userOp.transaction.gasLimit,
-                "DelegatableCore:delegation-gas-limit-exceeded"
-            );
-
-            // Update remaining gas limit
-            remainingGasLimits[delegationHash] = remainingGas - userOp.transaction.gasLimit;
 
             // Store the hash of this delegation in `authHash`
             // That way the next delegation can be verified against it.
@@ -99,6 +96,7 @@ abstract contract DelegatableCore is EIP712Decoder {
             canGrant = delegation.delegate;
         }
 
+        // TODO: Return the validation check info. Maybe add time range to the schema.
         // // Perform validation checks
         // bool isValid = /* perform validation checks */;
 
@@ -111,7 +109,6 @@ abstract contract DelegatableCore is EIP712Decoder {
         //     | (uint256(validUntil) << 160)
         //     | (uint256(validAfter) << 208);
         return;
-        // TODO: Return the validation check info. Maybe add time range to the schema.
     }
 
     /**
