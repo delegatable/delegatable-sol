@@ -44,13 +44,12 @@ abstract contract EIP712Decoder {
         address delegate;
         bytes32 authority;
         Caveat[] caveats;
-        uint256 gasLimit;
         uint256 nonce;
     }
 
     bytes32 public constant delegationTypehash =
         keccak256(
-            "Delegation(address delegate,bytes32 authority,Caveat[] caveats,uint256 gasLimit,uint256 nonce)Caveat(address enforcer,bytes terms)"
+            "Delegation(address delegate,bytes32 authority,Caveat[] caveats,uint256 nonce)Caveat(address enforcer,bytes terms)"
         );
 
     struct Caveat {
@@ -104,15 +103,6 @@ abstract contract EIP712Decoder {
         pure
         returns (bytes32)
     {
-        bytes memory encoded = getEip712DomainPacket(_input);
-        return keccak256(encoded);
-    }
-
-    function getEip712DomainPacket(EIP712Domain memory _input)
-        public
-        pure
-        returns (bytes memory)
-    {
         bytes memory encoded = abi.encode(
             eip712domainTypehash,
             keccak256(bytes(_input.name)),
@@ -120,7 +110,7 @@ abstract contract EIP712Decoder {
             _input.chainId,
             _input.verifyingContract
         );
-        return encoded;
+        return keccak256(encoded);
     }
 
     function getDelegationPacketHash(Delegation memory _input)
@@ -128,24 +118,14 @@ abstract contract EIP712Decoder {
         pure
         returns (bytes32)
     {
-        bytes memory encoded = getDelegationPacket(_input);
-        return keccak256(encoded);
-    }
-
-    function getDelegationPacket(Delegation memory _input)
-        public
-        pure
-        returns (bytes memory)
-    {
         bytes memory encoded = abi.encode(
             delegationTypehash,
             _input.delegate,
             _input.authority,
             getCaveatArrayPacketHash(_input.caveats),
-            _input.gasLimit,
             _input.nonce
         );
-        return encoded;
+        return keccak256(encoded);
     }
 
     function getCaveatArrayPacketHash(Caveat[] memory _input)
@@ -167,21 +147,12 @@ abstract contract EIP712Decoder {
         pure
         returns (bytes32)
     {
-        bytes memory encoded = getCaveatPacket(_input);
-        return keccak256(encoded);
-    }
-
-    function getCaveatPacket(Caveat memory _input)
-        public
-        pure
-        returns (bytes memory)
-    {
         bytes memory encoded = abi.encode(
             caveatTypehash,
             _input.enforcer,
             keccak256(_input.terms)
         );
-        return encoded;
+        return keccak256(encoded);
     }
 
     function verifySignedDelegation(SignedDelegation memory _input)
@@ -190,54 +161,6 @@ abstract contract EIP712Decoder {
         returns (address)
     {
         bytes32 packetHash = getDelegationPacketHash(_input.message);
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", getDomainHash(), packetHash)
-        );
-
-        if (_input.signer == 0x0000000000000000000000000000000000000000) {
-            address recoveredSigner = recover(digest, _input.signature);
-            return recoveredSigner;
-        } else {
-            // EIP-1271 signature verification
-            bytes4 result = ERC1271Contract(_input.signer).isValidSignature(
-                digest,
-                _input.signature
-            );
-            require(result == 0x1626ba7e, "INVALID_SIGNATURE");
-            return _input.signer;
-        }
-    }
-
-    function verifySignedInvocation(SignedInvocation memory _input)
-        public
-        view
-        returns (address)
-    {
-        bytes32 packetHash = getInvocationPacketHash(_input.message);
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", getDomainHash(), packetHash)
-        );
-
-        if (_input.signer == 0x0000000000000000000000000000000000000000) {
-            address recoveredSigner = recover(digest, _input.signature);
-            return recoveredSigner;
-        } else {
-            // EIP-1271 signature verification
-            bytes4 result = ERC1271Contract(_input.signer).isValidSignature(
-                digest,
-                _input.signature
-            );
-            require(result == 0x1626ba7e, "INVALID_SIGNATURE");
-            return _input.signer;
-        }
-    }
-
-    function verifySignedBatch(SignedBatch memory _input)
-        public
-        view
-        returns (address)
-    {
-        bytes32 packetHash = getBatchPacketHash(_input.message);
         bytes32 digest = keccak256(
             abi.encodePacked("\x19\x01", getDomainHash(), packetHash)
         );
