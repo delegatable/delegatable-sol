@@ -49,7 +49,7 @@ abstract contract DelegatableCore is EIP712Decoder {
         _requireFromEntryPoint();
 
         // Decode delegations
-        SignedDelegation[] memory delegations = decodeDelegationArray(userOp.signature);
+        SignedDelegation[] calldata delegations = decodeDelegationArray(userOp.signature);
 
         address intendedSender = userOp.sender;
         address canGrant = intendedSender;
@@ -57,7 +57,7 @@ abstract contract DelegatableCore is EIP712Decoder {
 
         uint256 delegationsLength = delegations.length;
         for (uint256 d = 0; d < delegationsLength; d++) {
-            SignedDelegation memory signedDelegation = delegations[d];
+            SignedDelegation calldata signedDelegation = delegations[d];
             address delegationSigner = verifyDelegationSignature(signedDelegation);
 
             require(
@@ -65,7 +65,7 @@ abstract contract DelegatableCore is EIP712Decoder {
                 "DelegatableCore:invalid-delegation-signer"
             );
 
-            Delegation memory delegation = signedDelegation.delegation;
+            Delegation calldata delegation = signedDelegation.delegation;
             require(
                 delegation.authority == authHash,
                 "DelegatableCore:invalid-authority-delegation-link"
