@@ -113,6 +113,59 @@ describe("ERC20AllowanceEnforcer", () => {
     );
   });
 
+  it("should FAIL to INVOKE transferFrom when delegation is NOT signed by sender", async () => {
+    // test is written as if a malicious party is trying to invoke a method to transfer ERC20 tokens from another party
+
+    const maliciousPK = PK1;
+    const maliciousWallet = wallet1;
+    expect(await ERC20Delegatable.balanceOf(wallet0.address)).to.eq(
+      ethers.utils.parseEther("1")
+    );
+    expect(await ERC20Delegatable.balanceOf(maliciousWallet.address)).to.eq(
+      ethers.utils.parseEther("0")
+    );
+
+    const INVOCATION_MESSAGE = {
+      replayProtection: {
+        nonce: "0x01",
+        queue: "0x00",
+      },
+      batch: [
+        {
+          // leave authority empty - no caveats to check
+          authority: [],
+          transaction: {
+            to: ERC20Delegatable.address,
+            gasLimit: "210000000000000000",
+            data: (
+              await ERC20Delegatable.populateTransaction.transferFrom(
+                wallet0.address,
+                wallet1.address,
+                ethers.utils.parseEther("0.3")
+              )
+            ).data,
+          },
+        },
+      ],
+    };
+
+    const invocation = delegatableUtils.signInvocation(
+      INVOCATION_MESSAGE,
+      maliciousPK
+    );
+
+    // able to invoke transferFrom(address,address,uint256) because caveats are not checked
+    // expect invocation to fail because intendedSender is derived from the msg.sender (malicious party) or the recovered signer of the first delegation in the authority array
+    await expect(
+      ERC20Delegatable.connect(wallet1).invoke([
+        {
+          signature: invocation.signature,
+          invocations: invocation.invocations,
+        },
+      ])
+    ).to.be.revertedWith("ERC20: insufficient allowance");
+  });
+
   it("should FAIL to INVOKE transfer ABOVE enforcer allowance", async () => {
     const PK = wallet0._signingKey().privateKey.substring(2);
     expect(await ERC20Delegatable.balanceOf(wallet0.address)).to.eq(
