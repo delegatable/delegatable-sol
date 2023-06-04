@@ -3,6 +3,13 @@ import { generateUtil } from "eth-delegatable-utils";
 const BASE_AUTH =
   "0x0000000000000000000000000000000000000000000000000000000000000000";
 
+export function prepend0x(hex: string): string {
+  if (hex.toLowerCase().slice(0, 2) === "0x") {
+    return hex;
+  }
+  return "0x" + hex;
+}
+
 export function generateDelegation(
   name: any,
   contract: any,
