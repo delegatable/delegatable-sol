@@ -6,7 +6,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 // @ts-ignore
 import { generateUtil } from "eth-delegatable-utils";
 import { getPrivateKeys } from "../../utils/getPrivateKeys";
-import { generateDelegation } from "../utils";
+import { generateDelegation, prepend0x } from "../utils";
 
 const { getSigners } = ethers;
 
@@ -163,6 +163,89 @@ describe("ERC20AllowanceEnforcer", () => {
         },
       ])
     ).to.be.revertedWith("ERC20AllowanceEnforcer:allowance-exceeded");
+  });
+
+  it("should FAIL to transfer more than initial delegation permits", async () => {
+    expect(await ERC20Delegatable.balanceOf(wallet0.address)).to.eq(
+      ethers.utils.parseEther("1")
+    );
+
+    // root delegation (signer will be set to the message sender and therefore tokens will transfer from signer's account)
+    // root delegation provides allowance for 0.1
+    const _delegation0 = generateDelegation(
+      CONTACT_NAME,
+      ERC20Delegatable,
+      PK0,
+      wallet1.address,
+      [
+        {
+          enforcer: ERC20AllowanceEnforcer.address,
+          terms: ethers.utils.hexZeroPad(
+            utils.parseEther("0.1").toHexString(),
+            32
+          ),
+        },
+      ]
+    );
+
+    const _delegationHash0 =
+      delegatableUtils.createSignedDelegationHash(_delegation0);
+    const _delegationHash0Hex = prepend0x(_delegationHash0.toString("hex"));
+
+    // this delegation says allowance is 0.2
+    const _delegation1 = generateDelegation(
+      CONTACT_NAME,
+      ERC20Delegatable,
+      PK1,
+      wallet2.address,
+      [
+        {
+          enforcer: ERC20AllowanceEnforcer.address,
+          terms: ethers.utils.hexZeroPad(
+            utils.parseEther("0.2").toHexString(),
+            32
+          ),
+        },
+      ],
+      _delegationHash0Hex
+    );
+
+    // invocation will try to transfer 0.2
+    const INVOCATION_MESSAGE = {
+      replayProtection: {
+        nonce: "0x01",
+        queue: "0x00",
+      },
+      batch: [
+        {
+          authority: [_delegation0, _delegation1],
+          transaction: {
+            to: ERC20Delegatable.address,
+            gasLimit: "210000000000000000",
+            data: (
+              await ERC20Delegatable.populateTransaction.transfer(
+                wallet1.address,
+                ethers.utils.parseEther("0.2")
+              )
+            ).data,
+          },
+        },
+      ],
+    };
+    const invocation = delegatableUtils.signInvocation(INVOCATION_MESSAGE, PK2);
+
+    await expect(
+      ERC20Delegatable.invoke([
+        {
+          signature: invocation.signature,
+          invocations: invocation.invocations,
+        },
+      ])
+    ).to.be.revertedWith("ERC20AllowanceEnforcer:allowance-exceeded");
+
+    expect(await ERC20Delegatable.balanceOf(wallet0.address)).to.eq(
+      ethers.utils.parseEther("1")
+    );
   });
 
   it("should FAIL to INVOKE invalid method", async () => {
