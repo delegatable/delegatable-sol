@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.21;
 
 import "../CaveatEnforcer.sol";
 import {IERC1271Wallet} from "../interfaces/IERC1271Wallet.sol";
