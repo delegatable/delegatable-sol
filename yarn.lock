@@ -1311,9 +1311,9 @@
     form-data "^3.0.0"
 
 "@types/node@*", "@types/node@^18.0.0":
-  version "18.6.5"
-  resolved "https://registry.npmjs.org/@types/node/-/node-18.6.5.tgz"
-  integrity sha512-Xjt5ZGUa5WusGZJ4WJPbOT8QOqp6nDynVFRKcUt32bOgvXEoc6o085WNkYTMO7ifAj2isEfQQ2cseE+wT6jsRw==
+  version "18.14.6"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.14.6.tgz#ae1973dd2b1eeb1825695bb11ebfb746d27e3e93"
+  integrity sha512-93+VvleD3mXwlLI/xASjw0FzKcwzl3OdTCzm1LaRfqgS21gfFtK3zDXM5Op9TeeMsJVOaJ2VRDpT9q4Y3d0AvA==
 
 "@types/node@^10.0.3":
   version "10.17.60"
