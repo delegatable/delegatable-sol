@@ -85,7 +85,7 @@
     "node-watch": "0.7.3",
     "prettier": "^2.6.2",
     "prettier-plugin-solidity": "1.0.0-beta.24",
-    "solc": "0.8.15",
+    "solc": "0.8.21",
     "solhint": "3.3.7",
     "solidity-coverage": "0.7.18",
     "solidity-docgen": "0.5.16",

@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity 0.8.21;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../Delegatable.sol";
